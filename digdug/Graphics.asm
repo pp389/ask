@@ -1,0 +1,177 @@
+PROC GRAPHICS_PRINTRECT	
+	x   equ [ss:bp + 12]
+	y   equ [ss:bp + 10]
+	
+	Wid equ [ss:bp + 8]
+	Hei equ [ss:bp + 6]
+	
+	Col equ [ss:bp + 4]
+
+	PUSH bp
+	MOV  bp, sp
+
+	SUB sp, 4
+	MAX_X equ [ss:bp - 2]
+	MAX_Y equ [ss:bp - 4]
+	
+	PUSHA
+
+	MOV ax, x
+	ADD ax, Wid
+	MOV MAX_X, ax
+	
+	MOV ax, y
+	ADD ax, Hei
+	MOV MAX_Y, ax
+
+	MOV ax, Col
+	XOR bx, bx
+	MOV ah, 0Ch
+	MOV dx, y				
+	
+@Yloop:
+	MOV cx, x
+	
+@Xloop:
+	INT 10h
+	
+	INC cx
+	CMP cx, MAX_X
+	JNZ @Xloop
+	
+	INC dx
+	CMP dx, MAX_Y
+	JNZ @Yloop
+
+	POPA
+	ADD sp, 4 	
+	POP bp 		
+	RET 10	
+ENDP GRAPHICS_PRINTRECT
+
+PROC GRAPHICS_GETCOLOR
+
+	PX_X EQU [BP + 6]
+	PX_Y EQU [BP + 4]
+
+	PUSH BP
+	MOV  BP, SP
+
+	PUSH CX
+	PUSH DX	
+
+	MOV CX, PX_X
+	MOV DX, PX_Y
+
+	MOV AH, 0DH
+	INT 10H
+	
+	XOR AH, AH
+
+	POP DX
+	POP CX
+	
+	POP BP
+	
+	RET 4
+ENDP GRAPHICS_GETCOLOR
+	
+
+PROC GRAPHICS_PRINTIMAGE
+	PUSH BP
+	MOV  BP, SP
+	
+	PUSH AX
+	PUSH BX
+	PUSH CX
+	PUSH DX
+	PUSH SI
+	
+	IMM_OFFSET	EQU [WORD PTR BP + 10]
+	IMM_COL		EQU [BP + 8]
+	PX_X 		EQU [BP + 6]
+	PX_Y 		EQU [BP + 4]
+
+	MOV SI, IMM_OFFSET
+	MOV AX, IMM_COL
+	ADD IMM_OFFSET, 9
+	
+	MOV CX, PX_X
+	MOV DX, PX_Y
+	
+	MOV AH, 0Ch
+		
+@@LOAD_BYTE:
+	MOV BH, 7
+@@PRINT_LOOP:
+	PUSH CX
+	MOV  BL, [SI]
+	MOV  CL, BH
+	SHR  BL, CL
+	POP  CX
+	
+	AND  BL, 1
+	JZ   @@EXIT_PRINT_LOOP
+	
+	INT  10H
+	
+@@EXIT_PRINT_LOOP: 
+	INC CX
+	DEC BH
+	CMP BH, 0FFh
+	JNZ @@PRINT_LOOP	
+
+	
+	MOV CX, PX_X
+	INC DX
+	
+	INC SI
+	CMP SI, IMM_OFFSET
+	JNZ @@LOAD_BYTE
+
+	
+	MOV DX, PX_Y
+	ADD CX, 8
+	MOV BH, 7
+		
+@@PRINT_LASTCOL: 
+	PUSH CX
+	MOV  BL, [SI]
+	MOV  CL, BH
+	SHR  BL, CL
+	POP  CX
+	
+	AND  BL, 1
+	JZ   @@EXIT_PRINT_LASTCOL
+	
+	INT  10H
+	
+	@@EXIT_PRINT_LASTCOL:
+	INC DX
+	DEC BH
+	CMP BH, 0FFh
+	JNZ @@PRINT_LASTCOL
+
+	CMP [BYTE PTR SI + 1], 0
+
+	JZ  @@END_PROC  
+	INT 10H
+	
+@@END_PROC:
+	POP SI
+	POP DX
+	POP CX
+	POP BX
+	POP AX
+	
+	POP BP
+	RET 8
+ENDP GRAPHICS_PRINTIMAGE
+	
+PROC GRAPHICS_MODE
+	PUSH AX
+	MOV  AX, 13h
+	INT  10h
+	POP  AX
+	RET
+ENDP GRAPHICS_MODE

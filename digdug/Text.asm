@@ -1,0 +1,259 @@
+PROC TEXT_PRINT_NUM
+	num equ [ss:bp + 4]
+
+	PUSH bp
+	MOV  bp, sp
+
+	SUB sp, 2
+	ArrayEnd equ [ss:bp - 2]
+
+	PUSHA
+
+	MOV  bx, OFFSET printNumArr
+	MOV  cx, 10h
+	XCHG ax, num
+	
+	MOV ArrayEnd, bx
+	ADD bx, 3
+
+@breakNum:
+	XOR dx, dx
+	DIV cx
+	MOV [ds:bx], dl
+	
+	DEC bx
+	CMP bx, ArrayEnd
+	JGE @breakNum
+
+	MOV bx, OFFSET printNumArr
+	ADD bx, 3
+	
+@ToAscii:
+	CMP [byte ptr ds:bx], 9
+	JA  toLetter
+	
+	ADD [byte ptr ds:bx], '0'
+	JMP exitToAscii
+	
+	toLetter:
+	ADD [byte ptr ds:bx], 37h
+	
+	exitToAscii:
+	DEC bx
+	CMP bx, ArrayEnd
+	JGE @ToAscii
+
+	PUSH OFFSET printNumArr
+	CALL TEXT_PRINT_MSG
+
+	POPA
+
+	ADD sp, 2
+	POP bp
+	
+	RET 2
+ENDP TEXT_PRINT_NUM
+
+
+PROC TEXT_NEWLINE
+	PUSH AX
+	PUSH DX
+
+
+
+	MOV DL, 0Ah
+	MOV AH, 2
+	INT 21H
+	
+	MOV DL, 0Dh
+	INT 21H
+
+
+
+	POP DX
+	POP AX
+
+	
+	RET
+ENDP TEXT_NEWLINE
+
+
+PROC TEXT_PRINT_MSG
+	MsgOff EQU [BP + 4]
+
+	PUSH BP
+	MOV BP, SP
+	
+	PUSH AX
+	PUSH DX
+
+
+	MOV DX, MsgOff
+	MOV AH, 9
+	INT 21H
+
+
+	POP DX
+	POP AX
+	
+	POP BP
+	
+	
+	RET 2
+ENDP TEXT_PRINT_MSG
+
+PROC TEXT_SET_CURPOS
+	CUR_COL EQU [BP + 6]
+	CUR_ROW EQU [BP + 4]
+
+	PUSH BP
+	MOV  BP, SP
+
+
+	PUSH AX
+	PUSH BX
+	PUSH DX
+	
+	MOV AH, 2
+	MOV BX, CUR_ROW
+	MOV DX, CUR_COL
+	MOV DH, BL
+	INT 10H
+
+	POP DX
+	POP BX
+	POP AX
+	
+	POP BP
+	
+	RET 4
+ENDP TEXT_SET_CURPOS
+
+
+PROC TEXT_MODE
+	PUSH AX
+	MOV  AX, 3
+	INT  10h
+	POP  AX
+	RET
+ENDP TEXT_MODE
+
+
+PROC TEXT_PRINTDEC
+	PUSH BP
+	MOV  BP, SP
+	
+	PUSH AX
+	PUSH BX
+	PUSH SI
+	PUSH DI
+	
+	ARR_OFF EQU [BP + 4]
+
+	MOV SI, ARR_OFF
+	MOV DI, OFFSET PRINT_DEC
+	XOR BX, BX
+	
+@@COPY_ARR: 
+	MOV AL, [SI + BX]
+	MOV [DI + BX], AL
+	
+	INC BX
+	CMP BX, 5
+	JNZ @@COPY_ARR
+	
+	
+	XOR BX, BX
+	
+@@TO_ASCII: 
+	ADD [BYTE PTR DI + BX], '0'
+	INC BX
+	CMP BX, 5
+	JNZ @@TO_ASCII
+	
+	
+	XOR BX, BX
+	
+@@CHECK_ZERO: 
+	CMP [BYTE PTR DI + BX], '0'
+	JNZ @@PRINT_NUM
+	MOV [BYTE PTR DI + BX], ' '
+	
+	INC BX
+	CMP BX, 4
+	JNZ @@CHECK_ZERO
+	
+	
+	
+@@PRINT_NUM: 
+	PUSH DI
+	CALL TEXT_PRINT_MSG
+
+@@END_PROC: 
+	POP DI
+	POP SI
+	POP BX
+	POP AX
+	
+	POP BP
+	RET 2
+ENDP TEXT_PRINTDEC
+
+
+PROC TEXT_COLORSTR
+	PUSH BP
+	MOV  BP, SP
+	
+	SUB  SP, 2
+	CURSOR_Y EQU [BP - 2]
+	
+	PUSH AX
+	PUSH BX
+	PUSH CX
+	PUSH DX
+	PUSH SI
+	
+	TXT_COLOR 	EQU [BP + 6]
+	ARR_OFF 	EQU [BP + 4]
+	
+	MOV  AH, 3
+	XOR  BX, BX
+	INT  10H
+	XCHG DH, BL
+	MOV  CURSOR_Y, BX
+
+
+	MOV SI, ARR_OFF
+	MOV BL, TXT_COLOR
+	MOV BH, 0
+	MOV AH, 9
+	MOV CX, 1
+
+@@TXT_LOOP: 
+	MOV AL, [SI]
+	CMP AL, '$'
+	JZ  @@END_PROC
+	
+	PUSH DX
+	PUSH CURSOR_Y
+	CALL TEXT_SET_CURPOS
+	
+	INT 10H
+	INC SI
+	INC DX
+	JMP @@TXT_LOOP
+
+@@END_PROC: 
+	POP SI
+	POP DX
+	POP CX
+	POP BX
+	POP AX
+	
+	ADD SP, 2
+	POP BP
+	RET 4
+ENDP TEXT_COLORSTR
+
+
+

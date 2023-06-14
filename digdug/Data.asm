@@ -1,0 +1,99 @@
+PACMAN_0 	DB 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0
+
+
+GHOST_0		DB 3Eh, 7Fh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0DDh, 3Fh, 1
+FRIGH_EYES	DB 00, 00, 36h, 36h, 00, 2Ah, 55h, 00, 00, 00, 0
+
+black 			EQU 0000b
+
+blue 			EQU 0011b
+green 			EQU 0010b
+cyan			EQU 0001b
+red				EQU 0100b
+magenta			EQU 0101b
+brown			EQU 0110b
+yellow			EQU 2Ch
+
+army_green		EQU 74h
+
+light_gray		EQU 0111b
+dark_gray		EQU 1000b
+
+light_blue		EQU 1001b
+light_green		EQU 1010b
+light_cyan		EQU 1011b
+light_red		EQU 1100b
+pink			EQU 1101b
+light_brown		EQU 1110b
+orange			EQU 2Ah
+white			EQU 1111b
+
+clear_black		EQU 10h
+
+dark_red		EQU 70h
+pp_pink			EQU 59h
+
+dark_yellow		EQU 2Bh
+orange			EQU 2Ah
+white_1			EQU 1Fh
+
+ARR_U 			EQU 48h
+ARR_D 			EQU 50h
+ARR_L 			EQU 4Bh
+ARR_R 			EQU 4Dh
+
+SC_SPACE		EQU 39h
+SC_ENTER		EQU 1Ch
+SC_RSHFT		EQU 36h
+
+DIR_U			EQU 00F7h
+DIR_D			EQU 0009h
+DIR_L			EQU 0F700h
+DIR_R			EQU 0900h
+DIR_N			EQU 0000h
+
+IDIR_U			EQU 0
+IDIR_D			EQU 1
+IDIR_L			EQU 2
+IDIR_R			EQU 3
+IDIR_N			EQU 4
+
+LOC_N			EQU 0FFFFh
+
+OBJ_VOID		EQU 0
+OBJ_WALL		EQU 1
+
+M_X				EQU BX
+M_Y				EQU BX + 2
+	
+M_TARX			EQU BX + 4
+M_TARY			EQU BX + 6
+
+M_DIR			EQU BX + 8
+M_OBJ			EQU BX + 10
+M_COLOR			EQU BX + 12
+M_MODE			EQU BX + 14
+
+M_PDIR			EQU BX + 16
+M_PDIR_U		EQU BX + 16
+M_PDIR_D		EQU BX + 18
+M_PDIR_L		EQU BX + 20
+M_PDIR_R		EQU BX + 22
+
+M_MINDOTS		EQU BX + 24
+M_ENABLED		EQU BX + 26
+	
+MODE_SCAT		EQU 0
+MODE_CHASE		EQU 1
+MODE_FRIGH		EQU 2
+MODE_DEAD		EQU 3
+
+
+BTN_PLAY EQU 0
+BTN_HELP EQU 1
+BTN_EXIT EQU 2
+
+TRUE 	EQU 1
+FALSE 	EQU 0
+
+CLOCK_ADDRESS EQU WORD PTR ES:6Ch		
